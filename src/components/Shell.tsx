@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect } from "react";
 import { useApi } from "./client";
 
 export type Me = {
-  user: { id: number; username: string; email: string } | null;
+  user: { id: number; username: string; email: string; verified: boolean } | null;
   activeGameId: number | null;
   inboxCount: number;
 };
@@ -34,13 +34,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (me && !me.user) router.replace("/accedi");
+    else if (me?.user && !me.user.verified) router.replace("/verifica");
   }, [me, router]);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
 
-  if (!me?.user) return <main className="muted">Caricamento…</main>;
+  if (!me?.user?.verified) return <main className="muted">Caricamento…</main>;
 
   return (
     <MeContext.Provider value={{ me, reloadMe: reload }}>

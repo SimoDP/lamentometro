@@ -6,7 +6,7 @@ App web installabile sul telefono (PWA), in italiano, con fuso orario di Roma.
 
 ## Regole
 
-- **Account:** email e password, più un nome utente univoco per farsi trovare. Password dimenticata: arriva un PIN di 6 cifre per email, valido 15 minuti.
+- **Account:** email e password, più un nome utente univoco per farsi trovare. Alla registrazione arriva un PIN per confermare l'email (valido 30 minuti): finché non è confermata non si può usare l'app né essere trovati nella ricerca. Password dimenticata: arriva un PIN di 6 cifre per email, valido 15 minuti.
 - **Persone:** cerchi un nome utente e chiedi di seguirlo; l'altro deve accettare. Tutti gli inviti stanno nella sezione Inviti.
 - **Gioco:** inviti una persona che segui scegliendo punti al giorno, orario limite (default 11:00) e lista di penitenze. Il gioco parte quando l'altro accetta e dura finché non viene eliminato. Un solo gioco attivo a testa.
 - **Mattina:** entro l'orario limite ognuno sceglie la penitenza per l'altro (poi non si cambia). Se ne manca una la giornata salta. Il punteggio del giorno è quello di default; chi lo vuole cambiare lo propone e l'altro deve accettare. Se il gioco nasce dopo l'orario limite, il primo giorno c'è tempo fino alle 23:59.

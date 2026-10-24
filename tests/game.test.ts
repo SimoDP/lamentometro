@@ -18,9 +18,13 @@ async function ok(token: string | undefined, method: string, path: string, body:
   return r as typeof r & { body: any };
 }
 
+const lastPin = () => sentMails.at(-1)!.text.match(/\d{6}/)![0];
+
 async function signup(username: string) {
   const r = await ok(undefined, "POST", "auth/register", { email: `${username}@test.it`, username, password: "password123" });
-  return r.setSession!.token;
+  const token = r.setSession!.token;
+  await ok(token, "POST", "auth/verify", { pin: lastPin() });
+  return token;
 }
 
 /** Due utenti che si seguono e hanno un gioco attivo. */
@@ -43,6 +47,31 @@ beforeEach(() => {
 });
 
 describe("account", () => {
+  it("obbliga a confermare l'email prima di usare l'app", async () => {
+    const r = await ok(undefined, "POST", "auth/register", { email: "zoe@test.it", username: "zoe", password: "password123" });
+    const t = r.setSession!.token;
+    expect((await ok(t, "GET", "me")).body.user.verified).toBe(false);
+    expect((await call(t, "GET", "games")).status).toBe(403);
+    const pin = lastPin();
+    expect((await call(t, "POST", "auth/verify", { pin: pin === "000000" ? "111111" : "000000" })).status).toBe(400);
+    // Chi non ha confermato non si trova nella ricerca.
+    const other = await signup("zack");
+    expect((await ok(other, "GET", "users/search?q=zo")).body).toHaveLength(0);
+    await ok(t, "POST", "auth/verify", { pin });
+    expect((await ok(t, "GET", "me")).body.user.verified).toBe(true);
+    expect((await ok(other, "GET", "users/search?q=zo")).body).toHaveLength(1);
+  });
+
+  it("permette di correggere l'email prima della conferma", async () => {
+    const r = await ok(undefined, "POST", "auth/register", { email: "sbagliata@test.it", username: "zoe", password: "password123" });
+    const t = r.setSession!.token;
+    expect((await call(t, "POST", "auth/resend")).status).toBe(400);
+    await ok(t, "POST", "auth/change-email", { email: "giusta@test.it" });
+    expect(sentMails.at(-1)!.to).toBe("giusta@test.it");
+    await ok(t, "POST", "auth/verify", { pin: lastPin() });
+    await ok(undefined, "POST", "auth/login", { email: "giusta@test.it", password: "password123" });
+  });
+
   it("rifiuta nomi utente ed email duplicati", async () => {
     await signup("anna");
     const r = await call(undefined, "POST", "auth/register", { email: "x@test.it", username: "ANNA", password: "password123" });

@@ -20,7 +20,11 @@ export default function Accedi() {
     e.preventDefault();
     run(async () => {
       if (mode === "login") await api("POST", "auth/login", { email, password });
-      else if (mode === "register") await api("POST", "auth/register", { email, username, password });
+      else if (mode === "register") {
+        await api("POST", "auth/register", { email, username, password });
+        router.replace("/verifica");
+        return;
+      }
       else if (mode === "forgot") {
         await api("POST", "auth/forgot", { email });
         setMode("reset");

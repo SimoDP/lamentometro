@@ -11,6 +11,16 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS email_verifications (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pin_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  used_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -140,6 +150,12 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 );
 `;
 
+/** Modifiche ai database già esistenti. */
+function migrate(db: Database.Database) {
+  const cols = (db.prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((c) => c.name);
+  if (!cols.includes("email_verified_at")) db.exec("ALTER TABLE users ADD COLUMN email_verified_at TEXT");
+}
+
 declare global {
   // eslint-disable-next-line no-var
   var __lamentometroDb: Database.Database | undefined;
@@ -152,6 +168,7 @@ function open(): Database.Database {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 

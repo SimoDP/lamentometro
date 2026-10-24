@@ -35,8 +35,8 @@ const num = (s: string) => {
 };
 
 // ---------- account ----------
-route("POST", "auth/register", ({ req }) => {
-  const u = auth.register(req.body);
+route("POST", "auth/register", async ({ req }) => {
+  const u = await auth.register(req.body);
   return { $session: auth.createSession(u.id), user: auth.publicUser(u) };
 });
 route("POST", "auth/login", ({ req }) => {
@@ -55,11 +55,20 @@ route("POST", "auth/reset", ({ req }) => {
   const u = auth.resetPassword(req.body);
   return { $session: auth.createSession(u.id), user: auth.publicUser(u) };
 });
+route("POST", "auth/verify", ({ req, user }) => auth.verifyEmail(user ?? fail("Devi accedere", 401), req.body));
+route("POST", "auth/resend", async ({ user }) => {
+  await auth.sendVerification(user ?? fail("Devi accedere", 401));
+});
+route("POST", "auth/change-email", async ({ req, user }) => {
+  await auth.changeUnverifiedEmail(user ?? fail("Devi accedere", 401), req.body);
+});
 route("GET", "me", ({ user }) => {
   if (!user) return { user: null };
+  if (!user.email_verified_at)
+    return { user: { ...auth.publicUser(user), email: user.email, verified: false }, activeGameId: null, inboxCount: 0 };
   const active = game.activeGameFor(user.id);
   return {
-    user: { ...auth.publicUser(user), email: user.email },
+    user: { ...auth.publicUser(user), email: user.email, verified: true },
     activeGameId: active?.id ?? null,
     inboxCount: social.inbox(user).count,
   };
@@ -119,7 +128,12 @@ export async function handle(req: ApiRequest): Promise<ApiResult> {
       const params = match(pattern, req.path);
       if (!params) continue;
       const user = auth.userFromSession(req.token);
-      const me = () => user ?? fail("Devi accedere", 401);
+      // Tutto il resto dell'app richiede un'email confermata.
+      const me = () => {
+        if (!user) fail("Devi accedere", 401);
+        if (!user.email_verified_at) fail("Conferma prima la tua email", 403);
+        return user;
+      };
       const out = (await h({ req, params, user, me })) as Record<string, unknown> | undefined;
       if (out && typeof out === "object" && !Array.isArray(out)) {
         if ("$download" in out) return { status: 200, body: out.data, download: out.$download as string };
