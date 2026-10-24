@@ -25,7 +25,9 @@ export async function sendMail(to: string, subject: string, text: string) {
   // Le virgolette attorno al valore (comuni nei pannelli delle variabili d'ambiente) romperebbero il mittente.
   const from = (MAIL_FROM || SMTP_USER || "").trim().replace(/^(["'])(.*)\1$/, "$2");
   try {
-    await transport.sendMail({ from, to, subject, text });
+    const info = await transport.sendMail({ from, to, subject, text });
+    // Conferma che il server SMTP ha accettato l'email: utile per confrontarla con i log del provider.
+    console.log(`[mail] inviata a ${to} da ${from}: messageId=${info.messageId} risposta="${info.response}"`);
   } catch (e) {
     const err = e as { code?: string; responseCode?: number; response?: string; message?: string };
     console.error(
