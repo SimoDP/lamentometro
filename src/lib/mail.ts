@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { fail } from "./errors";
 
 /** Sentinella per i test: l'ultima email "inviata". */
 export const sentMails: { to: string; subject: string; text: string }[] = [];
@@ -17,6 +18,19 @@ export async function sendMail(to: string, subject: string, text: string) {
     port,
     secure: port === 465,
     auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 20_000,
   });
-  await transport.sendMail({ from: MAIL_FROM || SMTP_USER, to, subject, text });
+  // Le virgolette attorno al valore (comuni nei pannelli delle variabili d'ambiente) romperebbero il mittente.
+  const from = (MAIL_FROM || SMTP_USER || "").trim().replace(/^(["'])(.*)\1$/, "$2");
+  try {
+    await transport.sendMail({ from, to, subject, text });
+  } catch (e) {
+    const err = e as { code?: string; responseCode?: number; response?: string; message?: string };
+    console.error(
+      `[mail] invio a ${to} fallito: code=${err.code ?? "?"} responseCode=${err.responseCode ?? "?"} ${err.response ?? err.message ?? e}`,
+    );
+    fail("Non sono riuscito a inviare l'email. Riprova tra qualche minuto.", 502);
+  }
 }
