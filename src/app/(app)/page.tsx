@@ -186,7 +186,7 @@ function SetupCard({ v, onDone }: { v: GameView; onDone: () => void }) {
         <div className="row">
           <input id="dayscore" className="grow" type="number" min={1} max={999} value={score} onChange={(e) => setScore(e.target.value)} />
           <button
-            className="ghost"
+            className="info"
             disabled={busy || Number(score) === t.startScore}
             onClick={() => run(() => api("POST", `games/${g.id}/proposals`, { kind: "day_score", value: Number(score) })).then(onDone)}
           >
@@ -252,7 +252,7 @@ function PenancesCard({ gameId, penances, onDone }: { gameId: number; penances: 
           {penances.map((p) => (
             <div key={p.id} className="row between" style={{ padding: "6px 0" }}>
               <span className="grow">{p.text}</span>
-              <button className="small ghost" disabled={busy} onClick={() => run(() => api("DELETE", `games/${gameId}/penances/${p.id}`)).then(onDone)}>
+              <button className="small info-soft" disabled={busy} onClick={() => run(() => api("DELETE", `games/${gameId}/penances/${p.id}`)).then(onDone)}>
                 Elimina
               </button>
             </div>
@@ -266,7 +266,7 @@ function PenancesCard({ gameId, penances, onDone }: { gameId: number; penances: 
             }}
           >
             <input className="grow" value={text} onChange={(e) => setText(e.target.value)} placeholder="Nuova penitenza" maxLength={200} />
-            <button disabled={busy || !text.trim()}>Aggiungi</button>
+            <button className="info" disabled={busy || !text.trim()}>Aggiungi</button>
           </form>
           <p className="small muted">Le penitenze già scelte per oggi restano valide anche se le elimini dalla lista.</p>
         </div>
