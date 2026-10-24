@@ -19,7 +19,7 @@ export function searchUsers(me: User, q: unknown) {
   const query = str(q, 50);
   if (!query || query.length < 2) return [];
   const rows = db()
-    .prepare("SELECT id, username FROM users WHERE username LIKE ? ESCAPE '\\' AND id != ? ORDER BY username LIMIT 20")
+    .prepare("SELECT id, username FROM users WHERE username LIKE ? ESCAPE '\\' AND id != ? AND email_verified_at IS NOT NULL ORDER BY username LIMIT 20")
     .all(query.replace(/[\\%_]/g, (c) => "\\" + c) + "%", me.id) as { id: number; username: string }[];
   return rows.map((u) => ({
     ...u,
@@ -30,7 +30,7 @@ export function searchUsers(me: User, q: unknown) {
 
 export function requestFollow(me: User, input: { username?: unknown }) {
   const name = str(input.username, 50);
-  const target = db().prepare("SELECT id, username FROM users WHERE username = ?").get(name) as
+  const target = db().prepare("SELECT id, username FROM users WHERE username = ? AND email_verified_at IS NOT NULL").get(name) as
     | { id: number; username: string }
     | undefined;
   if (!target) fail("Utente non trovato", 404);
