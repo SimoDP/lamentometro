@@ -3,6 +3,7 @@ import * as game from "./game";
 import * as social from "./social";
 import { saveSubscription, vapidPublicKey } from "./push";
 import { AppError, fail } from "./errors";
+import { limit } from "./ratelimit";
 import type { User } from "./auth";
 
 export const SESSION_COOKIE = "lm_session";
@@ -13,6 +14,7 @@ export type ApiRequest = {
   query: URLSearchParams;
   body: Record<string, unknown>;
   token?: string;
+  ip?: string;
 };
 
 export type ApiResult = {
@@ -34,12 +36,19 @@ const num = (s: string) => {
   return n;
 };
 
+const emailKey = (body: Record<string, unknown>) => String(body.email ?? "").trim().toLowerCase();
+
 // ---------- account ----------
+// I limiti di frequenza rendono inutili i tentativi a forza bruta su password e PIN.
 route("POST", "auth/register", async ({ req }) => {
+  limit(`register:${req.ip}`, 5, 60);
   const u = await auth.register(req.body);
   return { $session: auth.createSession(u.id), user: auth.publicUser(u) };
 });
 route("POST", "auth/login", ({ req }) => {
+  limit(`login:${req.ip}:${emailKey(req.body)}`, 8, 15);
+  limit(`login:${req.ip}`, 40, 15);
+  limit(`login:${emailKey(req.body)}`, 20, 15);
   const u = auth.login(req.body);
   return { $session: auth.createSession(u.id), user: auth.publicUser(u) };
 });
@@ -48,18 +57,25 @@ route("POST", "auth/logout", ({ req }) => {
   return { $session: null, ok: true };
 });
 route("POST", "auth/forgot", async ({ req }) => {
+  limit(`forgot:${emailKey(req.body)}`, 3, 15);
+  limit(`forgot:${req.ip}`, 10, 60);
   await auth.requestPasswordReset(req.body);
   return { ok: true };
 });
 route("POST", "auth/reset", ({ req }) => {
+  limit(`reset:${req.ip}`, 20, 15);
   const u = auth.resetPassword(req.body);
   return { $session: auth.createSession(u.id), user: auth.publicUser(u) };
 });
-route("POST", "auth/verify", ({ req, user }) => auth.verifyEmail(user ?? fail("Devi accedere", 401), req.body));
+route("POST", "auth/verify", ({ req, user }) => {
+  limit(`verify:${req.ip}`, 20, 15);
+  return auth.verifyEmail(user ?? fail("Devi accedere", 401), req.body);
+});
 route("POST", "auth/resend", async ({ user }) => {
   await auth.sendVerification(user ?? fail("Devi accedere", 401));
 });
 route("POST", "auth/change-email", async ({ req, user }) => {
+  limit(`change-email:${user?.id}`, 5, 60);
   await auth.changeUnverifiedEmail(user ?? fail("Devi accedere", 401), req.body);
 });
 route("GET", "me", ({ user }) => {
