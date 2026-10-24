@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { handle } from "@/lib/api";
 import { resetDb } from "@/lib/db";
+import { resetLimits } from "@/lib/ratelimit";
 import { setNow } from "@/lib/time";
 import { sentMails } from "@/lib/mail";
 
@@ -43,6 +44,7 @@ async function setupGame(defaultScore = 10) {
 
 beforeEach(() => {
   resetDb();
+  resetLimits();
   rome("2026-10-24", "08:00");
 });
 
@@ -226,5 +228,17 @@ describe("primo giorno", () => {
     const h = (await ok(a, "GET", `games/${gameId}/history`)).body;
     expect(h.find((d: any) => d.day === "2026-10-24").phase).toBe("done");
     expect((await ok(a, "GET", `games/${gameId}`)).body.today.deadline).toBe("11:00");
+  });
+});
+
+describe("sicurezza", () => {
+  it("blocca i tentativi ripetuti di password sbagliata", async () => {
+    await signup("anna");
+    for (let i = 0; i < 8; i++) {
+      const r = await call(undefined, "POST", "auth/login", { email: "anna@test.it", password: "sbagliata" });
+      expect(r.status).toBe(401);
+    }
+    const r = await call(undefined, "POST", "auth/login", { email: "anna@test.it", password: "password123" });
+    expect(r.status).toBe(429);
   });
 });
