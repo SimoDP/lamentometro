@@ -1,17 +1,34 @@
 :root {
-  --bg: #fff7f0;
+  --bg: #fdf1f3;
   --card: #ffffff;
   --ink: #2b1d16;
-  --muted: #8a7468;
-  --line: #f0dfd3;
-  --brand: #e8572a;
-  --brand-dark: #c23d14;
+  --muted: #7a5c66;
+  --line: #f0d3dc;
+  --brand: #c2410c;
+  --brand-ink: #c2410c;
+  --brand-dark: #9f3510;
+  --lamento: #662ae8;
+  --lamento-edge: #4718b0;
   --super-a: #7b2ff7;
   --super-b: #f107a3;
-  --ok: #1f9d55;
-  --warn: #d48806;
+  --super-shadow: #4b1a99;
+  --ok: #17803f;
+  --ok-ink: #146c35;
+  --ok-soft: #e3f6ea;
+  --warn: #8a5300;
+  --warn-soft: #fff4dc;
   --bad: #d63031;
-  --soft: #fde8dc;
+  --bad-soft: #fdecea;
+  --error-ink: #a4262c;
+  --soft: #fae4eb;
+  --notice-bg: #f8dde4;
+  --info: #1b5fa8;
+  --info-soft: #d4e8fa;
+  --info-ink: #1b5fa8;
+  --bar-start: #e0157f;
+  --bar-end: #ff9cc4;
+  --on-brand: #ffffff;
+  --focus: #1b5fa8;
   --radius: 18px;
   --nav-h: 68px;
   color-scheme: light;
@@ -19,12 +36,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1a1310;
-    --card: #261c17;
+    --bg: #1d1417;
+    --card: #2a1d22;
     --ink: #f7ebe3;
-    --muted: #b49c8f;
-    --line: #3a2c25;
-    --soft: #3a241a;
+    --muted: #c4a8b2;
+    --line: #43303a;
+    --brand-ink: #f0703f;
+    --brand-dark: #ff9a76;
+    --ok-ink: #7fd6a0;
+    --ok-soft: #173322;
+    --warn: #f2c46d;
+    --warn-soft: #362a10;
+    --bad-soft: #3d1c1d;
+    --error-ink: #ff9b97;
+    --soft: #3d2730;
+    --notice-bg: #4a2c37;
+    --info-soft: #1a2d42;
+    --info-ink: #9cc8f2;
+    --focus: #7fb6ec;
     color-scheme: dark;
   }
 }
@@ -43,7 +72,12 @@ body {
 }
 
 a {
-  color: var(--brand);
+  color: var(--brand-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 main {
@@ -116,7 +150,7 @@ button,
   font: inherit;
   font-weight: 600;
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -142,6 +176,16 @@ button.danger {
 
 button.ok {
   background: var(--ok);
+}
+
+button.info {
+  background: var(--info);
+  color: var(--on-brand);
+}
+
+button.info-soft {
+  background: var(--info-soft);
+  color: var(--info-ink);
 }
 
 button.small {
@@ -184,8 +228,8 @@ label {
 }
 
 .error {
-  background: #fdecea;
-  color: #a4262c;
+  background: var(--bad-soft);
+  color: var(--error-ink);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 12px;
@@ -193,7 +237,7 @@ label {
 }
 
 .notice {
-  background: var(--soft);
+  background: var(--notice-bg);
   border-radius: 12px;
   padding: 10px 12px;
   font-size: 0.92rem;
@@ -210,17 +254,17 @@ label {
 }
 
 .badge.ok {
-  background: #e3f6ea;
-  color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
 }
 
 .badge.bad {
-  background: #fdecea;
-  color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--error-ink);
 }
 
 .badge.warn {
-  background: #fff4dc;
+  background: var(--warn-soft);
   color: var(--warn);
 }
 
@@ -267,7 +311,7 @@ label {
 .bar > span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--brand), #ffb347);
+  background: linear-gradient(90deg, var(--bar-start), var(--bar-end));
   transition: width 0.4s;
 }
 
@@ -283,14 +327,16 @@ label {
   min-height: 96px;
   border-radius: 22px;
   flex-direction: column;
-  font-size: 1.1rem;
-  box-shadow: 0 6px 0 var(--brand-dark);
+  background: var(--lamento);
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 6px 0 var(--lamento-edge);
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .big:active {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 var(--brand-dark);
+  box-shadow: 0 2px 0 var(--lamento-edge);
 }
 
 .big .pts {
@@ -300,13 +346,13 @@ label {
 
 .big.super {
   background: linear-gradient(135deg, var(--super-a), var(--super-b));
-  box-shadow: 0 6px 0 #4b1a99;
+  box-shadow: 0 6px 0 var(--super-shadow);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .big.super:active {
-  box-shadow: 0 2px 0 #4b1a99;
+  box-shadow: 0 2px 0 var(--super-shadow);
 }
 
 /* Lista lamentele */
@@ -340,7 +386,9 @@ label {
 
 .pill.super {
   background: linear-gradient(135deg, var(--super-a), var(--super-b));
-  color: #fff;
+  color: var(--on-brand);
+  font-size: 1.2rem;
+  padding: 1px 8px;
 }
 
 /* Statistiche */
@@ -422,7 +470,7 @@ label {
 }
 
 .nav a.on {
-  color: var(--brand);
+  color: var(--brand-ink);
 }
 
 .nav .dot {
@@ -430,7 +478,7 @@ label {
   top: 8px;
   left: calc(50% + 6px);
   background: var(--bad);
-  color: #fff;
+  color: var(--on-brand);
   border-radius: 99px;
   font-size: 0.65rem;
   min-width: 18px;
@@ -492,7 +540,7 @@ label {
 }
 
 .logo span {
-  color: var(--brand);
+  color: var(--brand-ink);
 }
 
 .choice {
